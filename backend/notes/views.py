@@ -19,7 +19,9 @@ class CategoryListView(APIView):
                 "notes",
                 filter=Q(notes__user=request.user, notes__deleted_at__isnull=True),
             )
-        )
+            # annotate() rewrites the query with a GROUP BY, which discards the
+            # model's default ordering, so state it again here.
+        ).order_by("sort_order")
         return Response(CategorySerializer(categories, many=True).data)
 
 

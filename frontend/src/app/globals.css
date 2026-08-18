@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #faf0e0;
+  --color-surface: #fdf6ea;
+  --color-ink: #2e2a24;
+  --color-muted: #8a7f6e;
+  --color-accent: #8b6f47;
+
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 0.75rem;
+  --radius-panel: 1.25rem;
+}
+
+/*
+ * The category palette, and the only place it is written down.
+ *
+ * These are plain CSS custom properties rather than Tailwind classes on
+ * purpose: Tailwind's JIT cannot see class names built at runtime
+ * (`bg-${slug}`), whereas `data-category` swaps every shade at once and
+ * transitions for free when the editor's category changes.
+ *
+ * Fill and dot are both given explicitly. Deriving the dot from the fill
+ * pulled every category toward the same hue; the design wants each dot to be
+ * a saturated version of its own colour, which is not a mix anyone should
+ * have to reverse-engineer.
+ */
+[data-category="random-thoughts"] {
+  --cat-fill: #efc4a5;
+  --cat-dot: #e08d53;
+}
+[data-category="school"] {
+  --cat-fill: #f7e4b0;
+  --cat-dot: #efc75e;
+}
+[data-category="personal"] {
+  --cat-fill: #bfd3c6;
+  --cat-dot: #74a8a2;
+}
+[data-category="drama"] {
+  --cat-fill: #a9c8c6;
+  --cat-dot: #4f8a8a;
+}
+
+/* The border is a genuine shade of the fill, so this one stays derived. */
+[data-category] {
+  --cat-border: color-mix(in oklab, var(--cat-fill) 80%, #6b4f38);
+}
+
+html,
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The design is a single warm light theme; opting out of the UA dark
+   treatment keeps form controls and scrollbars on-palette. */
+:root {
+  color-scheme: light;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-accent) 25%, transparent);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* The editor's title and body are borderless by design and fill the whole
+   panel, so a ring around them reads as a stray box. They are unmistakably
+   focused already — a caret sits in them. */
+.editor-field:focus-visible {
+  outline: none;
+}

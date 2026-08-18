@@ -25,6 +25,11 @@ class TestCategoryCounts:
     def test_all_four_categories_are_always_returned(self, auth_api):
         assert len(auth_api.get("/api/categories/").data) == 4
 
+    def test_categories_keep_design_order_despite_the_annotation(self, auth_api):
+        """annotate() adds a GROUP BY that drops the model's Meta.ordering."""
+        slugs = [c["slug"] for c in auth_api.get("/api/categories/").data]
+        assert slugs == ["random-thoughts", "school", "personal", "drama"]
+
     def test_counts_cost_a_single_query(
         self, auth_api, user, categories, django_assert_num_queries
     ):
