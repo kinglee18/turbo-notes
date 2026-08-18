@@ -243,6 +243,12 @@ of in design order. Deriving each category's dot colour from its fill pulled eve
 orange; they are explicit now. And closing a note where you had only picked a category deleted it,
 because "touched" was defined as having title or body text. Playwright caught the last one.
 
+**Writing the tests found two more.** Creating a note that failed left an unhandled promise rejection
+and told the user nothing — the button just re-enabled itself. And the Playwright config ran `next dev`,
+which Next 16 refuses to start twice from one directory, so `make e2e` broke for anyone who already had
+a dev server running; it now builds and serves the production artifact, which is closer to what ships
+anyway. Neither was reachable by reading the code.
+
 The pattern: fast and reliable on structure and boilerplate, confidently wrong on anything where the
 correct answer depends on a framework's actual runtime behaviour. Every claim in this README is
 something I ran.
