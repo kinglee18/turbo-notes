@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 *.sqlite3
 .coverage
+coverage.xml
 htmlcov/
 .pytest_cache/
 .ruff_cache/

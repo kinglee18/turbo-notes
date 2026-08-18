@@ -1,5 +1,9 @@
 # Turbo Notes
 
+[![CI](https://github.com/kinglee18/turbo-notes/actions/workflows/ci.yml/badge.svg)](https://github.com/kinglee18/turbo-notes/actions/workflows/ci.yml)
+[![Backend coverage](https://codecov.io/gh/kinglee18/turbo-notes/branch/main/graph/badge.svg?flag=backend)](https://codecov.io/gh/kinglee18/turbo-notes?flags[0]=backend)
+[![Frontend coverage](https://codecov.io/gh/kinglee18/turbo-notes/branch/main/graph/badge.svg?flag=frontend)](https://codecov.io/gh/kinglee18/turbo-notes?flags[0]=frontend)
+
 A notes-taking app built for the Turbo AI Senior Full Stack Engineer challenge:
 **Django REST Framework** on the back, **Next.js** on the front, built to the provided Figma design.
 
@@ -180,26 +184,39 @@ make test    # backend pytest + frontend vitest
 make e2e     # Playwright, starts both servers against a throwaway database
 ```
 
-| Suite | Count | Notes |
+| Suite | Count | Gate |
 | --- | --- | --- |
-| Backend (pytest) | 55 | 88% coverage, CI fails below 85% |
-| Frontend (Vitest) | 52 | Hooks, formatting, components |
+| Backend (pytest) | 55 | CI fails below 85% |
+| Frontend (Vitest) | 145 | CI fails below 90% |
 | End-to-end (Playwright) | 7 | Real browser, both servers |
 
-What I chose to test says more than the numbers. The backend suite leans on **permission isolation**,
-**autosave PATCH semantics** (a real change advances `updated_at`; an identical payload does not), and
-the **counts query costing exactly one round trip**. The frontend suite is heaviest on `useAutosave` —
-debounce collapsing a burst into one request, the single-flight queue sending exactly one follow-up,
-retry on network errors but not on validation errors, flush on unmount.
+The live numbers are in the badges at the top; both are uploaded to Codecov under separate `backend`
+and `frontend` flags, because an average across two languages tells you less than either figure alone.
+
+What I chose to test says more than the numbers. The backend suite leans on **permission isolation**
+(reaching another user's note is a 404, not a 403 — a 403 would confirm it exists), **autosave PATCH
+semantics** (a real change advances `updated_at`; an identical payload does not), and the **counts
+query costing exactly one round trip**. On the frontend the weight is on `useAutosave` — debounce
+collapsing a burst into one request, the single-flight queue sending exactly one follow-up, retry on
+network errors but not on validation errors, flush on unmount — and on `proxy.ts`, which is the auth
+gate and so gets its own suite for redirects, renewal, and clearing a spent refresh token.
 
 The most convincing test in the repo is the Playwright one that types into a note, hard-reloads the
 page, and asserts the content is still there — proving the autosave contract end to end.
+
+**What is excluded from frontend coverage, and why.** The Next route handlers
+(`src/app/api/**/route.ts`), the RSC-only fetch wrappers built on `next/headers`
+(`src/lib/api/server.ts`), the thin `fetch` wrapper (`src/lib/api/django.ts`) and the query provider.
+These are the seams where Next and Django meet: a unit test can only assert that a mock was called,
+while Playwright drives every one of them for real. `proxy.ts` and `src/lib/api/client.ts` are
+deliberately *not* excluded despite being infrastructure — they hold real branching, so they are
+tested rather than hidden.
 
 I did not write tests for Django's own behaviour, the admin, migrations, or any snapshots. Padding
 coverage that way is visible and says nothing.
 
 CI runs both stacks in parallel: ruff and pytest for the backend, typecheck, ESLint, Vitest and a
-production build for the frontend.
+production build for the frontend, with coverage uploaded from both.
 
 ---
 

@@ -1,0 +1,41 @@
+# Two stacks are reported separately rather than blended into one number:
+# they are different languages with different testing strategies, and an
+# average of the two tells you less than either figure on its own.
+
+coverage:
+  status:
+    project:
+      backend:
+        flags: [backend]
+        target: 85%
+        threshold: 2%
+      frontend:
+        flags: [frontend]
+        target: 90%
+        threshold: 2%
+    patch:
+      default:
+        target: 80%
+
+flags:
+  backend:
+    paths:
+      - backend/
+    # Without this, a commit touching only the frontend would report the
+    # backend as having dropped to zero, because that job uploaded nothing.
+    carryforward: true
+  frontend:
+    paths:
+      - frontend/src/
+    carryforward: true
+
+comment:
+  layout: "condensed_header, flags, files"
+  require_changes: true
+
+# Django writes these; they are not hand-written source.
+ignore:
+  - "backend/**/migrations/**"
+  - "backend/config/asgi.py"
+  - "backend/config/wsgi.py"
+  - "backend/manage.py"

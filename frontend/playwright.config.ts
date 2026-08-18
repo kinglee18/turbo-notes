@@ -29,10 +29,13 @@ export default defineConfig({
       timeout: 120_000,
     },
     {
-      command: `npm run dev -- --port 3100`,
+      // A production build rather than `next dev`: it exercises the artifact
+      // that would actually ship, and it does not collide with a dev server
+      // someone already has running on :3000.
+      command: `npm run build && npm run start -- --port 3100`,
       url: WEB,
       reuseExistingServer: false,
-      timeout: 120_000,
+      timeout: 180_000,
       env: { DJANGO_API_URL: `http://127.0.0.1:${API_PORT}` },
     },
   ],

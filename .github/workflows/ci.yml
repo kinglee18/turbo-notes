@@ -28,6 +28,16 @@ jobs:
       - name: Test
         run: uv run pytest
 
+      - name: Upload coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./backend/coverage.xml
+          flags: backend
+          # A Codecov outage should not turn the build red and imply the
+          # tests failed.
+          fail_ci_if_error: false
+
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -52,6 +62,14 @@ jobs:
 
       - name: Test
         run: npm run test:coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./frontend/coverage/lcov.info
+          flags: frontend
+          fail_ci_if_error: false
 
       - name: Build
         run: npm run build

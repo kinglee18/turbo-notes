@@ -13,6 +13,7 @@ export function NotesToolbar() {
   const [, startTransition] = useTransition();
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [creating, setCreating] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const currentQuery = searchParams.get("q") ?? "";
 
@@ -33,6 +34,7 @@ export function NotesToolbar() {
 
   async function createNote() {
     setCreating(true);
+    setFailed(false);
     try {
       // Create on the server first so the editor has a real id and URL, and
       // so "Last Edited" is truthful from the very first paint.
@@ -40,6 +42,11 @@ export function NotesToolbar() {
       const category = isCategorySlug(filter) ? filter : "random-thoughts";
       const note = await notesApi.create(category);
       router.push(`/notes/${note.id}`);
+    } catch {
+      // Caught rather than left to become an unhandled rejection: without
+      // this the button silently re-enables and the user is never told why
+      // nothing opened.
+      setFailed(true);
     } finally {
       setCreating(false);
     }
@@ -47,6 +54,10 @@ export function NotesToolbar() {
 
   return (
     <div className="mb-6 flex items-center justify-end gap-3">
+      <p role="alert" className="text-xs text-red-800">
+        {failed && "Couldn't start a new note."}
+      </p>
+
       <label className="sr-only" htmlFor="note-search">
         Search notes
       </label>
