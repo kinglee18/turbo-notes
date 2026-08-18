@@ -46,7 +46,7 @@ export function CategoryDropdown({ categories, value, onChange }: CategoryDropdo
         aria-haspopup="listbox"
         aria-expanded={open}
         data-category={value}
-        className="flex w-52 items-center gap-2 rounded-lg border border-[var(--cat-border)] bg-surface px-3 py-1.5 text-xs text-ink"
+        className="flex w-44 items-center gap-2 rounded-lg border border-[var(--cat-border)] bg-surface px-3 py-1.5 text-xs text-ink sm:w-52"
       >
         <span aria-hidden className="size-2 rounded-full bg-[var(--cat-dot)]" />
         <span className="flex-1 text-left">{current?.name ?? "Uncategorised"}</span>
@@ -57,7 +57,7 @@ export function CategoryDropdown({ categories, value, onChange }: CategoryDropdo
         <ul
           role="listbox"
           aria-label="Category"
-          className="absolute z-10 mt-1 w-52 overflow-hidden rounded-lg border border-[color-mix(in_oklab,var(--color-accent)_25%,transparent)] bg-surface py-1 shadow-sm"
+          className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-[color-mix(in_oklab,var(--color-accent)_25%,transparent)] bg-surface py-1 shadow-sm"
         >
           {others.map((category) => (
             <li key={category.slug}>
@@ -70,7 +70,7 @@ export function CategoryDropdown({ categories, value, onChange }: CategoryDropdo
                   onChange(category.slug);
                   setOpen(false);
                 }}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-ink hover:bg-[var(--cat-fill)]"
+                className="flex min-h-11 w-full items-center gap-2 px-3 text-left text-xs text-ink hover:bg-[var(--cat-fill)] lg:min-h-0 lg:py-1.5"
               >
                 <span aria-hidden className="size-2 rounded-full bg-[var(--cat-dot)]" />
                 {category.name}

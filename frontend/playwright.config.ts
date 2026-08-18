@@ -17,7 +17,26 @@ export default defineConfig({
     baseURL: WEB,
     trace: "retain-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    // testIgnore matters: without it the desktop project also picks up
+    // responsive.spec.ts and the whole suite runs twice under workers: 1.
+    {
+      name: "chromium",
+      testIgnore: /responsive\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      // Pixel 5 rather than an iPhone: the iPhone descriptors default to
+      // WebKit, and only chromium is installed. The viewport is pinned to the
+      // 375px design floor rather than the device's own 393px.
+      name: "mobile",
+      testMatch: /responsive\.spec\.ts/,
+      use: {
+        ...devices["Pixel 5"],
+        viewport: { width: 375, height: 812 },
+      },
+    },
+  ],
   webServer: [
     {
       command:
