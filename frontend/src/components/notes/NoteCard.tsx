@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 import { formatCardDate, parseBody } from "@/lib/format";
 import type { Category, Note } from "@/lib/types";
@@ -32,21 +32,29 @@ export function NoteCard({ note, categoryName }: NoteCardProps) {
   );
 }
 
+const NEVER_CHANGES = () => () => {};
+
 /**
- * The server renders in UTC and the browser in local time, so "today" can
- * legitimately differ between them. Render the server's answer, then correct
- * it on mount rather than letting React flag a hydration mismatch.
+ * "today" depends on the reader's clock and timezone, which the server does
+ * not know, so the server's answer and the browser's can differ.
+ *
+ * useSyncExternalStore is the right tool: it hands back the server snapshot
+ * during SSR and hydration, then re-renders once with the client snapshot.
+ * That gets the correct local label without a setState in an effect, which
+ * would cause a second cascading render on every card.
  */
 function CardDate({ iso }: { iso: string }) {
-  const [label, setLabel] = useState(() => formatCardDate(iso));
-
-  useEffect(() => {
-    setLabel(formatCardDate(iso));
-  }, [iso]);
+  // Subscribing here does nothing except buy one guaranteed re-render after
+  // hydration, at which point new Date() reflects the reader's own clock.
+  useSyncExternalStore(
+    NEVER_CHANGES,
+    () => true,
+    () => false,
+  );
 
   return (
     <time dateTime={iso} suppressHydrationWarning className="font-semibold text-ink">
-      {label}
+      {formatCardDate(iso, new Date())}
     </time>
   );
 }

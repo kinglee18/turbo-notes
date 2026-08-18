@@ -11,12 +11,17 @@ export default async function NotePage({
 }) {
   const { id } = await params;
 
+  // Only the fetch belongs in the try: an error thrown while rendering the
+  // editor is not something this catch could handle anyway.
+  let data;
   try {
-    const [note, categories] = await Promise.all([fetchNote(id), fetchCategories()]);
-    return <NoteEditor note={note} categories={categories} />;
+    data = await Promise.all([fetchNote(id), fetchCategories()]);
   } catch (error) {
     // Someone else's note is a 404 from the API, and should be a 404 here too.
     if (error instanceof ApiError && error.status === 404) notFound();
     throw error;
   }
+
+  const [note, categories] = data;
+  return <NoteEditor note={note} categories={categories} />;
 }

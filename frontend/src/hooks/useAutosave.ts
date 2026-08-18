@@ -65,15 +65,24 @@ export function useAutosave<T extends object>({
     isFatalRef.current = isFatal;
   });
 
-  const clearTimers = useCallback(() => {
-    for (const ref of [debounceRef, maxWaitRef, retryRef]) {
-      if (ref.current) clearTimeout(ref.current);
-      ref.current = null;
-    }
-  }, []);
+  /**
+   * The save routine, built exactly once.
+   *
+   * It has to be able to call itself — to retry after a failure, and to send
+   * the follow-up write when edits arrived mid-request — which a useCallback
+   * cannot do without referencing itself before it exists. A lazy useState
+   * initialiser gives one stable closure instead, and everything it touches
+   * already lives in a ref, so it never needs rebuilding.
+   */
+  const [run] = useState(() => {
+    const clearTimers = () => {
+      for (const ref of [debounceRef, maxWaitRef, retryRef]) {
+        if (ref.current) clearTimeout(ref.current);
+        ref.current = null;
+      }
+    };
 
-  const flush = useCallback(
-    async (options: { keepalive?: boolean } = {}) => {
+    async function save_(options: { keepalive?: boolean }): Promise<void> {
       clearTimers();
 
       const changes = changedFields(draftRef.current, savedRef.current);
@@ -98,11 +107,8 @@ export function useAutosave<T extends object>({
       } catch (error) {
         setStatus("error");
         if (!isFatalRef.current?.(error)) {
-          const delay = Math.min(
-            RETRY_BASE_MS * 2 ** attemptRef.current++,
-            RETRY_CAP_MS,
-          );
-          retryRef.current = setTimeout(() => void flush(), delay);
+          const delay = Math.min(RETRY_BASE_MS * 2 ** attemptRef.current++, RETRY_CAP_MS);
+          retryRef.current = setTimeout(() => void save_({}), delay);
         }
         return;
       } finally {
@@ -111,10 +117,16 @@ export function useAutosave<T extends object>({
 
       if (dirtyRef.current) {
         dirtyRef.current = false;
-        void flush();
+        void save_({});
       }
-    },
-    [clearTimers],
+    }
+
+    return save_;
+  });
+
+  const flush = useCallback(
+    (options: { keepalive?: boolean } = {}) => run(options),
+    [run],
   );
 
   /** Record an edit and schedule the save. */
@@ -123,13 +135,13 @@ export function useAutosave<T extends object>({
       draftRef.current = draft;
 
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => void flush(), DEBOUNCE_MS);
+      debounceRef.current = setTimeout(() => void run({}), DEBOUNCE_MS);
 
       if (!maxWaitRef.current) {
-        maxWaitRef.current = setTimeout(() => void flush(), MAX_WAIT_MS);
+        maxWaitRef.current = setTimeout(() => void run({}), MAX_WAIT_MS);
       }
     },
-    [flush],
+    [run],
   );
 
   /** Adopt server state that arrived from somewhere other than a save. */

@@ -193,10 +193,10 @@ describe("useAutosave", () => {
 
   it("flushes pending edits when the editor unmounts", async () => {
     const save = vi.fn(
-      async (changes: Partial<Draft>, _options: { keepalive: boolean }) => ({
-        ...INITIAL,
-        ...changes,
-      }),
+      async (changes: Partial<Draft>, options: { keepalive: boolean }) => {
+        void options;
+        return { ...INITIAL, ...changes };
+      },
     );
     const { result, unmount } = renderHook(() =>
       useAutosave<Draft>({ save, saved: INITIAL }),

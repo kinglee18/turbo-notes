@@ -27,9 +27,11 @@ export function NoteEditor({ note, categories }: NoteEditorProps) {
   const [lastEdited, setLastEdited] = useState(note.updated_at);
   const [deleting, setDeleting] = useState(false);
 
-  // Tracks whether this note has ever held content, so an untouched note
-  // created by "+ New Note" can be cleaned up on the way out.
-  const everHadContent = useRef(Boolean(note.title || note.body));
+  // Whether the user has interacted with this note at all, so one created by
+  // "+ New Note" and abandoned immediately can be cleaned up on the way out.
+  // Choosing a category counts: it is a deliberate act, and discarding a note
+  // someone just filed under "Personal" would be startling.
+  const touched = useRef(Boolean(note.title || note.body));
 
   const { status, change, flush } = useAutosave<Draft>({
     saved: { title: note.title, body: note.body, category: note.category },
@@ -51,9 +53,9 @@ export function NoteEditor({ note, categories }: NoteEditorProps) {
 
   const edit = useCallback(
     (patch: Partial<Draft>) => {
+      touched.current = true;
       setDraft((previous) => {
         const next = { ...previous, ...patch };
-        if (next.title || next.body) everHadContent.current = true;
         change(next);
         return next;
       });
@@ -64,9 +66,9 @@ export function NoteEditor({ note, categories }: NoteEditorProps) {
   async function close() {
     await flush();
 
-    // A note created but never written to is an accident of "+ New Note"
+    // A note created but never touched is an accident of "+ New Note"
     // routing straight into the editor; don't leave it cluttering the grid.
-    if (!everHadContent.current && !draft.title && !draft.body) {
+    if (!touched.current && !draft.title && !draft.body) {
       await notesApi.remove(note.id).catch(() => undefined);
     }
 

@@ -11,6 +11,8 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
+    // e2e/ belongs to Playwright; Vitest picking it up just errors out.
+    include: ["src/**/*.{test,spec}.{ts,tsx}"],
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],

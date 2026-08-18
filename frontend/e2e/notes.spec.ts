@@ -21,6 +21,17 @@ async function createNote(page: Page) {
   await page.waitForURL(/\/notes\/[0-9a-f-]{36}$/);
 }
 
+/** Resolves when a save carrying `contains` has been acknowledged. */
+function savedResponse(page: Page, contains: string) {
+  return page.waitForResponse(
+    (response) =>
+      response.request().method() === "PATCH" &&
+      response.url().includes("/api/proxy/notes/") &&
+      (response.request().postData() ?? "").includes(contains) &&
+      response.ok(),
+  );
+}
+
 test("a new account starts empty and can create its first note", async ({ page }) => {
   await signUp(page);
 
@@ -39,10 +50,15 @@ test("typing is saved without a save button and survives a reload", async ({ pag
   const noteUrl = page.url();
 
   await page.getByLabel("Note title").fill("Persisted Title");
-  await page.getByLabel("Note body").fill("- One\n- Two");
 
-  // The only signal that a save happened; there is no button to press.
+  // Wait for the debounced write that carries the body to actually land.
+  // "Saved" alone is not enough here: the title flushes on blur the moment
+  // focus moves to the textarea, so the indicator would already be showing
+  // while the body was still sitting in the debounce.
+  const bodySaved = savedResponse(page, "- One");
+  await page.getByLabel("Note body").fill("- One\n- Two");
   await expect(page.getByText("Saved")).toBeVisible();
+  await bodySaved;
 
   await page.reload();
 
@@ -76,7 +92,9 @@ test("notes filter by category and by search term", async ({ page }) => {
   await signUp(page);
 
   await createNote(page);
+  const homeworkSaved = savedResponse(page, "Chemistry Homework");
   await page.getByLabel("Note title").fill("Chemistry Homework");
+  await homeworkSaved;
   await page.getByRole("button", { name: /Random Thoughts/ }).click();
   await page.getByRole("option", { name: "School" }).click();
   await expect(page.getByText("Saved")).toBeVisible();
@@ -84,8 +102,9 @@ test("notes filter by category and by search term", async ({ page }) => {
   await page.waitForURL("**/notes");
 
   await createNote(page);
+  const plansSaved = savedResponse(page, "Weekend Plans");
   await page.getByLabel("Note title").fill("Weekend Plans");
-  await expect(page.getByText("Saved")).toBeVisible();
+  await plansSaved;
   await page.getByLabel("Close note").click();
   await page.waitForURL("**/notes");
 
@@ -105,8 +124,9 @@ test("notes filter by category and by search term", async ({ page }) => {
 test("a deleted note can be undone", async ({ page }) => {
   await signUp(page);
   await createNote(page);
+  const saved = savedResponse(page, "Regrettable Deletion");
   await page.getByLabel("Note title").fill("Regrettable Deletion");
-  await expect(page.getByText("Saved")).toBeVisible();
+  await saved;
 
   await page.getByRole("button", { name: "Delete" }).click();
   await page.waitForURL(/\/notes\?undo=/);
@@ -131,8 +151,9 @@ test("logging out locks the notes behind the login page", async ({ page }) => {
 test("one account cannot see another's notes", async ({ page }) => {
   await signUp(page);
   await createNote(page);
+  const saved = savedResponse(page, "Private To The First User");
   await page.getByLabel("Note title").fill("Private To The First User");
-  await expect(page.getByText("Saved")).toBeVisible();
+  await saved;
   const privateUrl = page.url();
 
   await page.goto("/notes");

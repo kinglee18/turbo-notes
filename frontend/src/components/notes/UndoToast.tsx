@@ -15,22 +15,26 @@ const VISIBLE_MS = 6_000;
  * timestamps intact.
  */
 export function UndoToast() {
+  const noteId = useSearchParams().get("undo");
+  if (!noteId) return null;
+
+  // Keying on the id remounts the toast for each delete, which resets the
+  // countdown without an effect reaching back in to reset state.
+  return <Toast key={noteId} noteId={noteId} />;
+}
+
+function Toast({ noteId }: { noteId: string }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const noteId = searchParams.get("undo");
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    if (!noteId) return;
-    setDismissed(false);
     const timer = setTimeout(() => setDismissed(true), VISIBLE_MS);
     return () => clearTimeout(timer);
-  }, [noteId]);
+  }, []);
 
-  if (!noteId || dismissed) return null;
+  if (dismissed) return null;
 
   async function restore() {
-    if (!noteId) return;
     setDismissed(true);
     await notesApi.restore(noteId).catch(() => undefined);
     router.replace("/notes");

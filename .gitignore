@@ -27,3 +27,6 @@ test-results/
 .DS_Store
 .idea/
 .vscode/
+
+# Playwright throwaway DB
+backend/e2e.sqlite3
