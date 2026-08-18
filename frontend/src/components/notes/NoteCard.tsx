@@ -23,7 +23,7 @@ export function NoteCard({ note, categoryName }: NoteCardProps) {
         <span className="text-ink/55">{categoryName}</span>
       </p>
 
-      <h2 className="font-display text-lg leading-tight text-ink">
+      <h2 className="font-display text-lg leading-tight break-words text-ink">
         {note.title || "Untitled"}
       </h2>
 
@@ -67,7 +67,7 @@ function BodyPreview({ body }: { body: string }) {
   }
 
   return (
-    <div className="mt-2 flex-1 space-y-1 overflow-hidden text-xs leading-relaxed text-ink/80">
+    <div className="mt-2 flex-1 space-y-1 overflow-hidden break-words text-xs leading-relaxed text-ink/80">
       {blocks.map((block, index) =>
         block.kind === "list" ? (
           <ul key={index} className="list-disc space-y-0.5 pl-4">

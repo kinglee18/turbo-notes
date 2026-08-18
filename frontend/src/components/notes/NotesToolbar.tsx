@@ -53,8 +53,8 @@ export function NotesToolbar() {
   }
 
   return (
-    <div className="mb-6 flex items-center justify-end gap-3">
-      <p role="alert" className="text-xs text-red-800">
+    <div className="mb-6 flex flex-wrap items-center justify-end gap-3">
+      <p role="alert" className="w-full text-xs text-red-800 sm:w-auto">
         {failed && "Couldn't start a new note."}
       </p>
 
@@ -67,7 +67,7 @@ export function NotesToolbar() {
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Search your notes…"
-        className="w-56 rounded-full border border-[color-mix(in_oklab,var(--color-accent)_35%,transparent)] bg-surface px-4 py-2 text-xs text-ink placeholder:text-muted"
+        className="min-w-0 flex-1 rounded-full border border-[color-mix(in_oklab,var(--color-accent)_35%,transparent)] bg-surface px-4 py-2 text-xs text-ink placeholder:text-muted sm:w-56 sm:flex-none"
       />
 
       <Button onClick={createNote} disabled={creating}>

@@ -69,7 +69,7 @@ export function AuthForm({
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-6">
+    <main className="flex min-h-dvh flex-col items-center justify-center px-6">
       <Image
         src={illustration.src}
         alt={illustration.alt}

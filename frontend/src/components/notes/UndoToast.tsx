@@ -44,7 +44,7 @@ function Toast({ noteId }: { noteId: string }) {
   return (
     <div
       role="status"
-      className="fixed bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-4 rounded-full border border-[color-mix(in_oklab,var(--color-accent)_35%,transparent)] bg-surface px-5 py-2.5 text-xs text-ink shadow-sm"
+      className="fixed bottom-6 left-1/2 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center justify-center gap-4 rounded-full border border-[color-mix(in_oklab,var(--color-accent)_35%,transparent)] bg-surface px-5 py-2.5 text-xs text-ink shadow-sm"
     >
       <span>Note deleted.</span>
       <button

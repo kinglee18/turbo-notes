@@ -97,7 +97,7 @@ export function NoteEditor({ note, categories }: NoteEditorProps) {
   return (
     <main
       data-category={draft.category}
-      className="mx-auto flex h-screen max-w-5xl flex-col gap-3 px-8 py-6"
+      className="mx-auto flex h-dvh max-w-5xl flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8 lg:py-6"
     >
       <div className="flex items-center justify-between">
         <CategoryDropdown
@@ -110,11 +110,11 @@ export function NoteEditor({ note, categories }: NoteEditorProps) {
           <button
             onClick={remove}
             disabled={deleting}
-            className="text-xs text-muted underline underline-offset-2 hover:text-red-800"
+            className="inline-flex min-h-11 items-center text-xs text-muted underline underline-offset-2 hover:text-red-800 lg:min-h-0"
           >
             Delete
           </button>
-          <button onClick={close} aria-label="Close note" className="text-ink/60 hover:text-ink">
+          <button onClick={close} aria-label="Close note" className="inline-flex size-11 items-center justify-center text-ink/60 hover:text-ink lg:size-auto">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
@@ -122,7 +122,7 @@ export function NoteEditor({ note, categories }: NoteEditorProps) {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col overflow-hidden rounded-panel border border-[var(--cat-border)] bg-[var(--cat-fill)] p-6 transition-colors duration-300">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-panel border border-[var(--cat-border)] bg-[var(--cat-fill)] p-4 transition-colors duration-300 sm:p-5 lg:p-6">
         <div className="mb-3 flex items-baseline justify-end gap-3 text-[11px] text-ink/60">
           <SaveIndicator status={status} />
           <time dateTime={lastEdited} suppressHydrationWarning>
@@ -136,7 +136,7 @@ export function NoteEditor({ note, categories }: NoteEditorProps) {
           onBlur={() => void flush()}
           placeholder="Note Title"
           aria-label="Note title"
-          className="editor-field w-full bg-transparent font-display text-2xl text-ink outline-none placeholder:text-ink/45"
+          className="editor-field w-full bg-transparent font-display text-xl text-ink outline-none placeholder:text-ink/45 sm:text-2xl"
         />
 
         <textarea
