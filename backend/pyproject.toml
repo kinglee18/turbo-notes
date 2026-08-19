@@ -23,7 +23,7 @@ dev = [
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = ["test_*.py"]
-addopts = "--cov=accounts --cov=notes --cov-report=term-missing --cov-report=xml --cov-fail-under=85"
+addopts = "--cov=accounts --cov=notes --cov-report=term-missing --cov-report=xml --cov-fail-under=95"
 
 [tool.coverage.run]
 omit = ["*/migrations/*", "*/tests/*", "*/apps.py", "manage.py", "config/*sgi.py"]

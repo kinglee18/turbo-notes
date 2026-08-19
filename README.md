@@ -191,9 +191,9 @@ make e2e     # Playwright, starts both servers against a throwaway database
 
 | Suite | Count | Gate |
 | --- | --- | --- |
-| Backend (pytest) | 55 | CI fails below 85% |
+| Backend (pytest) | 71 | CI fails below 95% |
 | Frontend (Vitest) | 145 | CI fails below 90% |
-| End-to-end (Playwright) | 7 | Real browser, both servers |
+| End-to-end (Playwright) | 14 | Real browser, both servers |
 
 The live numbers are in the badges at the top; both are uploaded to Codecov under separate `backend`
 and `frontend` flags, because an average across two languages tells you less than either figure alone.
@@ -208,6 +208,12 @@ gate and so gets its own suite for redirects, renewal, and clearing a spent refr
 
 The most convincing test in the repo is the Playwright one that types into a note, hard-reloads the
 page, and asserts the content is still there — proving the autosave contract end to end.
+
+`demo_data` is tested too, which looks like an odd thing to spend tests on until you notice it is the
+whole of a reviewer's first impression: if it breaks, `make demo-data` quietly yields an empty grid
+instead of the design. It also contains the one piece of genuinely subtle code in the command layer —
+an `update()` that bypasses `auto_now` so the twelve notes land across three weeks rather than all
+reading "today" — and that is pinned by its own test.
 
 **What is excluded from frontend coverage, and why.** The Next route handlers
 (`src/app/api/**/route.ts`), the RSC-only fetch wrappers built on `next/headers`
