@@ -82,3 +82,14 @@ body {
 .editor-field:focus-visible {
   outline: none;
 }
+
+/* Touch platforms overlay their scrollbars and fade them away; desktop leaves
+   a permanent track, which under the pinned category strip reads as a stray
+   rule rather than a control. The chip clipped at the right edge is the
+   affordance that the row scrolls. Keyboard and wheel scrolling still work. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

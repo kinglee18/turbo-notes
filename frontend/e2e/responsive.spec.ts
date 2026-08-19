@@ -38,16 +38,32 @@ async function createNote(page: Page, title: string) {
 /**
  * Reports *which* elements overflow, not just that something does — a bare
  * scrollWidth comparison tells you it is broken but not where.
+ *
+ * Anything inside a horizontal scroller is exempt. The category strip is one:
+ * its chips are *meant* to run past the right edge, since that is what gives
+ * it something to scroll. The invariant that matters is the document-level
+ * one below — the page itself must not scroll sideways.
  */
 async function expectNoHorizontalOverflow(page: Page) {
-  const overflow = await page.evaluate(() => ({
-    scrollWidth: document.documentElement.scrollWidth,
-    innerWidth: window.innerWidth,
-    culprits: [...document.querySelectorAll<HTMLElement>("body *")]
-      .filter((element) => element.getBoundingClientRect().right > window.innerWidth + 1)
-      .map((element) => `${element.tagName}.${element.className}`)
-      .slice(0, 5),
-  }));
+  const overflow = await page.evaluate(() => {
+    const insideScroller = (element: HTMLElement) => {
+      for (let node = element.parentElement; node; node = node.parentElement) {
+        const overflowX = getComputedStyle(node).overflowX;
+        if (overflowX === "auto" || overflowX === "scroll") return true;
+      }
+      return false;
+    };
+
+    return {
+      scrollWidth: document.documentElement.scrollWidth,
+      innerWidth: window.innerWidth,
+      culprits: [...document.querySelectorAll<HTMLElement>("body *")]
+        .filter((element) => element.getBoundingClientRect().right > window.innerWidth + 1)
+        .filter((element) => !insideScroller(element))
+        .map((element) => `${element.tagName}.${element.className}`)
+        .slice(0, 5),
+    };
+  });
 
   expect(overflow.culprits, "elements past the right edge").toEqual([]);
   expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.innerWidth);
@@ -102,6 +118,41 @@ test("the category nav and its controls meet the 44px tap-target floor", async (
     expect(box, `${name} should be laid out`).not.toBeNull();
     expect(box!.height).toBeGreaterThanOrEqual(TAP_TARGET_MIN);
   }
+});
+
+test("the category strip stays pinned to the top while the notes scroll", async ({
+  page,
+}) => {
+  await signUp(page);
+  for (const title of ["One", "Two", "Three", "Four"]) {
+    await createNote(page, title);
+    await page.getByLabel("Close note").click();
+    await page.waitForURL("**/notes");
+  }
+
+  const strip = page.getByRole("navigation", { name: "Categories" });
+  await expect(strip).toBeInViewport();
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+  // Guard against the assertion below passing because nothing scrolled.
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+
+  await expect(strip).toBeInViewport();
+  expect((await strip.boundingBox())!.y).toBeLessThanOrEqual(1);
+});
+
+test("every category is reachable from the pinned strip", async ({ page }) => {
+  await signUp(page);
+
+  // The strip is one scrolling row, so the later chips start out clipped;
+  // scrollIntoViewIfNeeded is what a thumb-swipe does.
+  const drama = page.getByRole("link", { name: /Drama/ });
+  await drama.scrollIntoViewIfNeeded();
+  await drama.click();
+
+  await expect(page).toHaveURL(/category=drama/);
+  await expect(drama).toBeInViewport();
 });
 
 test("the editor fills the visual viewport without scrolling the page", async ({
