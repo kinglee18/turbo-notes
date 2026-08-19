@@ -42,7 +42,12 @@ export default defineConfig({
       command:
         `cd ../backend && rm -f e2e.sqlite3 && ` +
         `DATABASE_URL=sqlite:///e2e.sqlite3 uv run python manage.py migrate --noinput && ` +
-        `DATABASE_URL=sqlite:///e2e.sqlite3 uv run python manage.py runserver ${API_PORT} --noreload`,
+        `DATABASE_URL=sqlite:///e2e.sqlite3 ` +
+        // Every spec signs up its own account, which trips the real 10/min
+        // auth throttle partway through a full run and hangs the rest. Raised
+        // only here; the production default stands and pytest asserts it.
+        `AUTH_THROTTLE_RATE=1000/min ` +
+        `uv run python manage.py runserver ${API_PORT} --noreload`,
       url: `http://127.0.0.1:${API_PORT}/api/schema/`,
       reuseExistingServer: false,
       timeout: 120_000,

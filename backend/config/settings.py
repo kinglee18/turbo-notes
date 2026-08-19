@@ -95,7 +95,10 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 24,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": ("rest_framework.throttling.ScopedRateThrottle",),
-    "DEFAULT_THROTTLE_RATES": {"auth": "10/min"},
+    # Configurable so the end-to-end suite can raise it: those tests sign up a
+    # fresh account per case and would otherwise throttle themselves. The
+    # default is the real one, and pytest asserts against it.
+    "DEFAULT_THROTTLE_RATES": {"auth": env("AUTH_THROTTLE_RATE", default="10/min")},
 }
 
 SIMPLE_JWT = {

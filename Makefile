@@ -1,22 +1,33 @@
-.PHONY: help install dev backend frontend migrate demo-data test test-backend test-frontend lint e2e clean
+.PHONY: help install dev backend frontend migrate demo-data superuser test test-backend test-frontend lint e2e clean
 
 BACKEND  := cd backend && uv run
 FRONTEND := npm --prefix frontend
 
 help:
-	@grep -E '^[a-z-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-z0-9-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
-install: ## Install backend and frontend dependencies
+# DEBUG defaults to False, which is the right default for anything real but
+# means runserver refuses to serve static files — the Django admin and the DRF
+# browsable API come out unstyled. Local dev gets a .env so that never happens
+# to someone who just cloned the repo.
+.env:
+	@cp .env.example .env
+	@echo "Created .env from .env.example (DEBUG=True for local development)."
+
+install: .env ## Install backend and frontend dependencies
 	cd backend && uv sync
 	$(FRONTEND) install
 
-migrate: ## Apply database migrations (also seeds the four categories)
+migrate: .env ## Apply database migrations (also seeds the four categories)
 	$(BACKEND) python manage.py migrate
 
-demo-data: ## Seed demo@turbo.notes / cozy-notes-2024 with a full grid of notes
+demo-data: .env ## Seed demo@turbo.notes / cozy-notes-2024 with a full grid of notes
 	$(BACKEND) python manage.py demo_data
 
-backend: ## Run the Django API on :8000
+superuser: .env ## Create an admin account for http://localhost:8000/admin/
+	$(BACKEND) python manage.py createsuperuser
+
+backend: .env ## Run the Django API on :8000
 	$(BACKEND) python manage.py runserver 8000
 
 frontend: ## Run the Next.js app on :3000

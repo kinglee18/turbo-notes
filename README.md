@@ -39,6 +39,11 @@ The demo account comes with twelve notes spread across the four categories and a
 looks like the design immediately rather than showing an empty state. `make help` lists everything else;
 the API docs are at http://localhost:8000/api/docs/.
 
+`make` creates a `.env` from `.env.example` on first run. That matters for more than convenience:
+`DEBUG` defaults to `False`, which is the right default for anything real, but it makes `runserver`
+refuse to serve static files — so without it the Django admin and the DRF browsable API render
+unstyled. For the admin itself, `make superuser` creates an account.
+
 ## What it does
 
 - **Email/password auth** — sign up, log in, log out, with rotating refresh tokens.
